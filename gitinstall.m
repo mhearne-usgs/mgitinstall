@@ -1,9 +1,19 @@
 % gitinstall - Install a Matlab package from a GitHub repository URL.
 % Usage:
-% gitinstall https://github.com/mhearne-usgs/mgitinstall
+% gitinstall https://github.com/mhearne-usgs/mgitinstall [install|upgrade|delete]
 % The first time this function is called, you will be prompted to select
 % a folder where this and all other future packages will be installed.
-function gitinstall(url)
+function gitinstall(url,varargin)
+    subcmd = 'install';
+    supported = {'install','delete','upgrade'};
+    if nargin == 2
+       subcmd = varargin{1};
+       if ~ismember(subcmd,supported)
+           cmdlist = strjoin(supported,' ');
+           fprintf('gitinstall subcommand must be one of: %s\n',cmdlist);
+           return;
+       end
+    end
     %url = 'https://github.com/mhearne-usgs/impact'
     if ~strcmpi(url(end),'/')
         url = [url '/'];
@@ -86,8 +96,36 @@ function gitinstall(url)
         writeconfig(installpath,configfile);
     end
     packagepath = fullfile(installpath,package);
-    fprintf('Installing github package in %s.\n',packagepath);
     a = dir(packagepath);
+    b = isdir(packagepath);
+    [s,r] = system(sprintf('ls -l %s',packagepath));
+    switch subcmd
+        case 'install'
+            if ~isempty(a)
+                fprintf('Package %s already exists.  Run "gitinstall %s upgrade" to force package download\n',package,url);
+                return;
+            else
+                fprintf('Installing github package in %s.\n',packagepath);
+            end
+        case 'delete'
+            if isempty(a)
+                fprintf('No such package exists.  Returning.\n');
+                return;
+            end
+            fprintf('Deleting %s from system and Matlab path\n',package);
+            rmdir(packagepath,'s');
+            w = warning ('off','all');
+            rmpath(packagepath);
+            warning(w);
+            return;
+        case 'upgrade'
+            if isempty(a)
+                fprintf('No such package exists on your system.  Installing.\n');
+            else
+                fprintf('Upgrading github package in %s.\n',packagepath);
+            end
+    end
+    
     if isempty(a)
         [s,m,mid] = mkdir(packagepath);
         if ~s
@@ -111,7 +149,9 @@ function gitinstall(url)
     rmdir(actualpath);
     delete(tmpfile);
     w = warning ('off','all');
-    addpath(packagepath);
+    if ~strcmpi(subcmd,'upgrade')
+        addpath(packagepath);
+    end
     warning(w);
     matlist = strjoin(matfiles,' ');
     fprintf('Installed functions: %s\n',matlist);
@@ -134,6 +174,6 @@ function gitpath = readconfig(configfile)
     tline = fgetl(fid);
     fclose(fid);
     parts = regexpi(tline,'=','split');
-    gitpath = parts{2};
+    gitpath = strtrim(parts{2});
     return;
 end
