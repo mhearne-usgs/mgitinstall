@@ -12,12 +12,12 @@ Methods for installing the gitinstall.m function:
 * Click on the "gitinstall.m" link above, then click on the "Raw" button above the file contents.  Then save the file to a folder in your Matlab path using "File->Save Page As" (or equivalent) in your browser. 
 
 Usage:
+gitinstall - Install a Matlab package from a GitHub repository URL.
+  Usage:
+  gitinstall https://github.com/mhearne-usgs/mgitinstall [install|upgrade|delete]
+  The first time this function is called, you will be prompted to select
+  a folder where this and all other future packages will be installed.
 
- gitinstall - Install a Matlab package from a GitHub repository URL.
- Usage:
- gitinstall https://github.com/mhearne-usgs/mgitinstall
- The first time this function is called, you will be prompted to select
- a folder where this and all other future packages will be installed.
 
 
 
